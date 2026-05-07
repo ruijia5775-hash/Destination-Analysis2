@@ -18,6 +18,82 @@
 
 ---
 
+## ⚠️ 数据采集协议（执行前必读 · Data Collection Protocol）
+
+> **使用本框架时，必须先完成以下采集步骤，再开始撰写报告。**
+> 所有统计数字须来自实时检索结果，禁止直接使用训练数据中的历史统计数字。
+> 原因：旅游统计数据年度更新频繁，训练截止日后的访客量、收入、签证政策等数据会严重失准，影响报告可信度。
+
+### 工具使用规则
+
+| 工具 | 使用场景 | 优先级 |
+|---|---|---|
+| `WebFetch` | 已知官方 URL，直接抓取页面数据 | **最高**——优先官方原始数据 |
+| `WebSearch` | 不知道具体 URL，用关键词搜索 | 次选——用于找到正确的官方页面或权威报道 |
+| 训练数据 | 仅用于补充背景逻辑、判断框架，**不用于填写数字** | 最低——出现于「Insight」解读，不出现于数据表格 |
+
+---
+
+### 必采数据清单（按优先级排列）
+
+**P0：报告骨架数据（缺失则报告无法成立，必须采集）**
+
+| 维度 | 优先：WebFetch 官方页面 | 备用：WebSearch 关键词 | 需提取字段 |
+|---|---|---|---|
+| **年度访客总量** | `[目的地]旅游局官网 > 统计数据` 页面 | `"[destination] inbound tourism arrivals [year] official statistics"` | 年度总人次、YoY 增减、2019年对比 |
+| **来源市场分国家** | 同旅游局统计页；或移民局年报 | `"[destination] visitor arrivals by nationality country [year]"` | Top 10 来源国 + 各自人次 |
+| **入境旅游总收入** | 旅游局年报 / 国家统计局 | `"[destination] inbound tourism revenue [year] official"` | 总收入（USD 或本币）、YoY |
+
+**P1：结构性数据（支撑核心判断，须尽力采集）**
+
+| 维度 | 优先：WebFetch 官方页面 | 备用：WebSearch 关键词 | 需提取字段 |
+|---|---|---|---|
+| **签证政策现状** | 目的地外交部 / 移民局签证页面 | `"[destination] visa free countries list [year] latest policy update"` | 免签国总数、主要来源国签证状态、近期变更节点 |
+| **主要机场旅客量** | 机场官网年报 / 旅客量统计页 | `"[destination] main airport passenger volume [year] annual report"` | 总旅客量、国际旅客量、YoY |
+| **航班走廊运力** | OAG 公开页面 / 航司 IR 页面 | `"[destination] aviation capacity OAG [year] busiest routes seats"` | 主要走廊周均座位数或日均航班数 |
+| **政府旅游战略目标** | 旅游局官方新闻 / 政策文件页 | `"[destination] tourism target [year] [year+1] government official strategy"` | 目标访客量、收入目标、政策名称 |
+
+**P2：竞争与市场数据（增强分析深度，有则用，无则注明）**
+
+| 维度 | 优先：WebFetch 官方页面 | 备用：WebSearch 关键词 | 需提取字段 |
+|---|---|---|---|
+| **酒店 OCC / ADR / RevPAR** | `str.com/data-insights-blog` | `"[destination] hotel performance [year] occupancy ADR RevPAR STR CoStar"` | 入住率、平均房价、RevPAR；分城市最佳 |
+| **核心玩家规模数据** | 公司官网 Press Release / IR 页面 | `"Klook OR KKday OR [platform] [destination] [year] press release market revenue"` | 营收、融资金额、市占率、SKU 数 |
+| **近期重大趋势事件** | 权威旅游媒体（Skift / PhocusWire / TTG Asia） | `"[destination] tourism [year] major trend impact visitor"` | 事件名称、量化影响（搜索量变化、预订增减） |
+
+---
+
+### 数据缺口处理规则
+
+采集过程中若无法获取某项数据，按以下规则标注，**不得以训练数据填写为「确认数据」**：
+
+| 情况 | 标注方式 | 示例 |
+|---|---|---|
+| 数据已找到，来自官方 | 正常写入，注明来源和年份 | `3,687万（JNTO，2024年）` |
+| 数据来自权威媒体引用官方 | 正常写入，注明转引 | `约857万（Focus Taiwan 引观光署数据，2025年）` |
+| 数据为合理推算值 | 标注「估」 | `约$43.5亿（估，基于访客量×人均消费推算）` |
+| 数据确实无法获取 | 标注缺口 | `— （官方未公开分国家数据，建议参考 [机构名称]）` |
+| 数据来自训练数据但无法验证 | 明确说明 | `约X万（训练数据，请用官方来源核实）` |
+
+---
+
+### 各章节推荐数据源速查
+
+| 章节 | 首选官方数据源 | 典型 URL 模式 |
+|---|---|---|
+| 第二章 市场规模 | 目的地旅游局年报；UNWTO 统计 | `[tourism authority].gov.[xx]/statistics` |
+| 第三章 客群分析 | 旅游局游客调查报告；Agoda/Booking 研究报告 | 旅游局官网 Annual Report PDF |
+| 第四章 市场趋势 | 旅游局新闻；外交部签证公告 | `[mofa/boca/immigration].gov.[xx]` |
+| 第五章 机会分析 | 综合以上数据后研判，无单一来源 | — |
+| 第六章 航空基础设施 | OAG 公开报告；各机场官网；航司 IR | `[airport].com/passenger-statistics` |
+| 第七章 住宿市场 | STR/CoStar 公开博客；HVS 市场快照 | `str.com/data-insights-blog` |
+| 第八章 目的地城市 | 各城市/省级旅游局；旅游局区域统计 | `[city].gov.[xx]/tourism` |
+| 第九章 市场玩家 | 公司年报；Skift；PhocusWire；Crunchbase | `[company].com/investor-relations` |
+| 第十章 风险因素 | 综合新闻检索；政府旅行建议 | `"[destination] tourism risk [year]"` |
+| 第十一章 对标市场 | 各目的地旅游局（同第二章来源） | — |
+
+---
+
 ## 第一章 执行摘要（Executive Summary）
 
 ### 1.1 五项核心结论
@@ -55,6 +131,12 @@
 ---
 
 ## 第二章 市场规模（Market Size）
+
+> 📡 **采集提示（写本章前执行）：**
+> 1. `WebFetch` → 目的地旅游局统计首页，提取年度总访客量、来源市场 Top10、入境收入
+> 2. `WebSearch` → `"[destination] inbound tourism [year] visitor arrivals official"`
+> 3. `WebSearch` → `"[destination] tourism revenue [year] annual report"`
+> 4. 若旅游局数据不含来源国明细，追加：`WebSearch` → `"[destination] visitors by nationality [year]"`
 
 ### Insight
 *[2-3句总结：市场体量的核心判断、恢复状态的结构性解读、最重要的数字背后的含义]*
@@ -194,6 +276,12 @@
 
 ## 第六章 航空基础设施（Aviation Infrastructure）
 
+> 📡 **采集提示（写本章前执行）：**
+> 1. `WebFetch` → 主要机场官网旅客量页面，提取年度总旅客量及 YoY
+> 2. `WebSearch` → `"[destination] airport passenger volume [year] international"`
+> 3. `WebSearch` → `"[destination] aviation capacity OAG [year] busiest routes weekly seats"`
+> 4. `WebSearch` → `"[main airline] [destination] routes expansion [year]"`（主要航司扩张动态）
+
 ### Insight
 *[核心判断：航班运力是否是制约因素？中心枢纽在哪里？哪些走廊最活跃？哪些走廊有瓶颈？]*
 
@@ -228,6 +316,12 @@
 ---
 
 ## 第七章 住宿市场（Accommodation Market）
+
+> 📡 **采集提示（写本章前执行）：**
+> 1. `WebFetch` → `https://str.com/data-insights-blog`，搜索目的地相关文章，提取 OCC / ADR / RevPAR
+> 2. `WebSearch` → `"[destination] hotel performance [year] occupancy rate ADR RevPAR STR"`
+> 3. `WebSearch` → `"[destination] hotel market [year] HVS OR JLL OR Colliers report"`
+> 4. `WebSearch` → `"Marriott OR Hilton OR IHG [destination] hotels [year] pipeline expansion"`（品牌布局）
 
 ### Insight
 *[住宿市场的核心特征：供需关系、外籍游客偏好、国际品牌 vs. 本土品牌格局、特色住宿类型]*
